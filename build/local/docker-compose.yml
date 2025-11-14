@@ -1,0 +1,53 @@
+services:
+  postgres:
+    container_name: ${ENV:-dev}-review-assigner-pg
+    image: postgres:18-alpine3.22
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-review_assigner_db}
+      POSTGRES_USER: ${POSTGRES_USER:-review_assigner_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-review_assigner_pass}
+    ports:
+      - ${POSTGRES_HOST_PORT:-5432}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    platform: linux/amd64
+    restart: unless-stopped
+    networks:
+      - review_assigner_network
+
+  migration:
+    container_name: ${ENV:-dev}-review-assigner-goose
+    image: gomicro/goose:3.25.0
+    platform: linux/amd64
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command:
+      [
+        "sh",
+        "-c",
+        "goose -dir /migrations postgres postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@postgres:5432/$POSTGRES_DB up",
+      ]
+    networks:
+      - review_assigner_network
+
+networks:
+  review_assigner_network:
+    driver: bridge
+    name: ${ENV:-dev}_review_assigner_network
+
+volumes:
+  postgres_data:
+    name: ${ENV:-dev}_review_assigner_pg_data
