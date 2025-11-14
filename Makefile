@@ -24,17 +24,19 @@ SERVICE_NAME                         := review-assigner
 ENV ?= dev
 DB_CONN                              := postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_HOST_PORT}/${POSTGRES_DB}
 
+.DEFAULT_GOAL := help
+
 
 # ======================================================
 # Changing files dependent on environment
 # ======================================================
 ifeq ($(ENV),local)
-	COMPOSE_FILE := $(ENV_LOCAL_DIR)/docker-compose.yml
+  COMPOSE_FILE := $(ENV_LOCAL_DIR)/docker-compose.yml
   ENV_FILE := $(ENV_LOCAL_DIR)/.env.example
   ENV_NAME := review-assigner-local
 else ifeq ($(ENV),dev)
-	COMPOSE_FILE := $(ENV_DEV_DIR)/docker-compose.yml
-  ENV_FILE := $(ENV_DEV_DIR)/.env
+  COMPOSE_FILE := $(ENV_DEV_DIR)/docker-compose.yml
+  ENV_FILE := $(ENV_DEV_DIR)/.env.example
   ENV_NAME := review-assigner-dev
 endif
 
@@ -74,6 +76,51 @@ status:
 
 
 # ======================================================
+# Docker composer
+# ======================================================
+.PHONY: compose-up
+compose-up:
+	@echo "Using environment: $(ENV_NAME)"
+	@docker compose -p $(ENV_NAME) up -d
+
+.PHONY: compose-down
+compose-down:
+	@docker compose -p $(ENV_NAME) stop
+
+.PHONY: compose-rm
+compose-rm:
+	@docker compose -p $(ENV_NAME) rm -fvs
+
+.PHONY: compose-rs
+compose-rs: ## remove previously and start new local env
+	make compose-rm
+	make compose-up
+
+.PHONY: compose-logs
+compose-logs:
+	@docker compose -p $(ENV_NAME) logs -f $(SERVICE_NAME)
+
+
+# ======================================================
+# Building containers
+# ======================================================
+.PHONY: all
+all: review-assigner
+
+.PHONY: review-assigner
+review-assigner:
+	@docker compose -p $(ENV_NAME) build $(SERVICE_NAME)
+
+
+# ======================================================
+# Run local
+# ======================================================
+.PHONY: run
+run:
+	@go run ./cmd/review-assigner
+
+
+# ======================================================
 # Help command
 # ======================================================
 .PHONY: help
@@ -84,4 +131,15 @@ help:
 	@echo "  env-local                     Switch environment to local"
 	@echo "  env-dev                       Switch environment to development"
 	@echo "  status                        Current environment information"
+	@echo ""
+	@echo "  compose-up                    Start environment"
+	@echo "  compose-down                  Terminate environment"
+	@echo "  compose-rm                    Remove environment"
+	@echo "  compose-rs                    Remove previously and start new environment"
+	@echo "  compose-logs                  View logs of review-assigner service"
+	@echo ""
+	@echo "  run                           Run local review-assigner service"
+	@echo ""
+	@echo "  all                           Build all app containers"
+	@echo "  review-assigner               Build review-assigner container"
 	@echo ""
