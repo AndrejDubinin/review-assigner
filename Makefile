@@ -121,6 +121,28 @@ run:
 
 
 # ======================================================
+# Migration
+# ======================================================
+.PHONY: install-goose
+install-goose:
+	@echo "Installing goose if missing..."
+	@[ -f $(GOOSE) ] || GOBIN=$(BIN_DIR) \
+	go install github.com/pressly/goose/v3/cmd/goose@$(GOOSE_VERSION)
+
+.PHONY: goose-up
+goose-up:
+	@$(BIN_DIR)/goose -dir $(MIGRATE_DIR) postgres $(DB_CONN) up
+
+.PHONY: goose-down
+goose-down:
+	@$(BIN_DIR)/goose -dir $(MIGRATE_DIR) postgres $(DB_CONN) down
+
+.PHONY: goose-create
+goose-create:
+	@$(BIN_DIR)/goose -dir $(MIGRATE_DIR) -s create $(n) sql
+
+
+# ======================================================
 # Help command
 # ======================================================
 .PHONY: help
@@ -142,4 +164,9 @@ help:
 	@echo ""
 	@echo "  all                           Build all app containers"
 	@echo "  review-assigner               Build review-assigner container"
+	@echo ""
+	@echo "  install-goose                 Install goose"
+	@echo "  goose-up                      Migration up"
+	@echo "  goose-down                    Migration down"
+	@echo "  goose-create n=<filename>     Create migration file"
 	@echo ""

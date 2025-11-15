@@ -45,9 +45,9 @@ services:
 
   review-assigner:
     build:
+      context: .
       dockerfile: ./build/dev/review-assigner/Dockerfile
     container_name: ${ENV:-dev}-review-assigner
-    # restart: unless-stopped
     env_file:
       - .env
     ports:
@@ -55,6 +55,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    restart: unless-stopped
     networks:
       - review_assigner_network
 
