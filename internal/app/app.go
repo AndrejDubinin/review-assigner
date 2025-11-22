@@ -1,3 +1,7 @@
+// Package app provides configuration parsing and the main application server for the review-assigner service.
+//
+// It defines Options for server settings, config for parsed timeouts and paths,
+// and App struct that initializes HTTP mux/server and handles ListenAndServe with handler registration.
 package app
 
 import (

@@ -1,3 +1,8 @@
+// Package http provides the root HTTP handler for health checks.
+//
+// It defines an IndexHandler that responds to requests at the root path ("/")
+// with a success message indicating the 'review-assigner' service is online.
+// The handler logs errors if the response cannot be sent.
 package http
 
 import (

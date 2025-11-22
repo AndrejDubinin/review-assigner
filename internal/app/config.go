@@ -1,3 +1,9 @@
+// Package app defines configuration structs, parses durations from string options,
+// and provides the main App struct for server setup and startup.
+//
+// The package includes Options for HTTP server configuration (host, port, timeouts),
+// internal web and path structs, NewConfig to parse and validate durations,
+// and App with methods to initialize the server, register handlers, and start listening.
 package app
 
 import "time"
