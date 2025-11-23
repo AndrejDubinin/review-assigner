@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/AndrejDubinin/review-assigner/internal/domain"
 	"go.uber.org/zap"
+
+	"github.com/AndrejDubinin/review-assigner/internal/domain"
 )
 
 type (
