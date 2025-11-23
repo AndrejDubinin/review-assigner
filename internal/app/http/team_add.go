@@ -81,7 +81,10 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	GetSuccessResponseWithBody(w, marshaledTeam)
+	if err = GetSuccessResponseWithBody(w, marshaledTeam); err != nil {
+		handleError(w, err, "failed to send response", h.logger)
+		return
+	}
 }
 
 func (h *AddTeamHandler) getRequestData(r *http.Request) (request *addTeamRequest, err error) {
