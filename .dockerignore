@@ -1,0 +1,39 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+README.md
+*.md
+
+# IDE
+.idea
+.vscode
+
+# Environment
+.env
+.env.*
+
+# Tests
+*_test.go
+coverage.out
+
+# CI/CD
+.github
+.gitlab-ci.yml
+
+# Temporary files
+tmp/
+*.tmp
+*.log
+
+# Build artifacts
+bin/
+build/
+migration/
+Makefile
