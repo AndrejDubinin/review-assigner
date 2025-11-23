@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"strings"
 
 	validatorV10 "github.com/go-playground/validator/v10"
@@ -33,8 +34,9 @@ func (v ValidationErrorResponse) String() string {
 
 func ConvertValidationErrors(err error) ValidationErrorResponse {
 	var response ValidationErrorResponse
+	var errs validatorV10.ValidationErrors
 
-	if errs, ok := err.(validatorV10.ValidationErrors); ok {
+	if errors.As(err, &errs) {
 		for _, e := range errs {
 			response.Errors = append(response.Errors, ValidationErrorItem{
 				Field:   toSnakeCase(e.Namespace()),
