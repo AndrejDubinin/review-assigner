@@ -50,6 +50,6 @@ func run(logger *zap.SugaredLogger) error {
 	if err := service.ListenAndServe(); err != nil {
 		return err
 	}
-
+	// TODO: Implement graceful shutdown
 	return nil
 }

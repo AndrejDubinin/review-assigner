@@ -6,7 +6,11 @@
 // and App with methods to initialize the server, register handlers, and start listening.
 package app
 
-import "time"
+import (
+	"fmt"
+	"strconv"
+	"time"
+)
 
 type (
 	Options struct {
@@ -16,9 +20,19 @@ type (
 		WriteTimeout    string
 		IdleTimeout     string
 		ShutdownTimeout string
+		DbName          string
+		DbUser          string
+		DbPassword      string
+		DbHost          string
+		DbPort          string
+		DbMaxConns      string
+		DbMinConns      string
+		DbMaxConnLife   string
+		DbConnMaxIdle   string
 	}
 	path struct {
-		index string
+		index   string
+		teamAdd string
 	}
 	web struct {
 		port            string
@@ -28,9 +42,17 @@ type (
 		idleTimeout     time.Duration
 		shutdownTimeout time.Duration
 	}
+	db struct {
+		dsn         string
+		maxConns    int32
+		minConns    int32
+		maxConnLife time.Duration
+		connMaxIdle time.Duration
+	}
 
 	config struct {
 		web  web
+		db   db
 		path path
 	}
 )
@@ -53,6 +75,26 @@ func NewConfig(opts Options) (config, error) {
 		return config{}, err
 	}
 
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s", opts.DbUser, opts.DbPassword,
+		opts.DbHost, opts.DbPort, opts.DbName)
+
+	dbMaxConns, err := strconv.ParseInt(opts.DbMaxConns, 10, 32)
+	if err != nil {
+		return config{}, err
+	}
+	dbMinConns, err := strconv.ParseInt(opts.DbMinConns, 10, 32)
+	if err != nil {
+		return config{}, err
+	}
+	dbMaxConnLife, err := time.ParseDuration(opts.DbMaxConnLife)
+	if err != nil {
+		return config{}, err
+	}
+	dbConnMaxIdle, err := time.ParseDuration(opts.DbConnMaxIdle)
+	if err != nil {
+		return config{}, err
+	}
+
 	return config{
 		web: web{
 			port:            opts.Port,
@@ -62,8 +104,16 @@ func NewConfig(opts Options) (config, error) {
 			idleTimeout:     idleTimeout,
 			shutdownTimeout: shutdownTimeout,
 		},
+		db: db{
+			dsn:         dsn,
+			maxConns:    int32(dbMaxConns),
+			minConns:    int32(dbMinConns),
+			maxConnLife: dbMaxConnLife,
+			connMaxIdle: dbConnMaxIdle,
+		},
 		path: path{
-			index: "/",
+			index:   "/",
+			teamAdd: "POST /team/add",
 		},
 	}, nil
 }

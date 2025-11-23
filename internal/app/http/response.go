@@ -4,12 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/AndrejDubinin/review-assigner/internal/domain"
 )
 
-type ErrorResponse struct {
-	Error   string `json:"error"`
-	Details string `json:"details,omitempty"`
-}
+type (
+	APIError struct {
+		Code    domain.ErrorCode `json:"code"`
+		Message string           `json:"message"`
+	}
+	ErrorResponse struct {
+		Error APIError `json:"error"`
+	}
+)
 
 func GetSuccessResponseWithBody(w http.ResponseWriter, body []byte) error {
 	w.Header().Set("Content-Type", "application/json")
@@ -21,12 +28,14 @@ func GetSuccessResponseWithBody(w http.ResponseWriter, body []byte) error {
 	return nil
 }
 
-func GetErrorResponse(w http.ResponseWriter, status int, err error, details string) error {
+func GetErrorResponse(w http.ResponseWriter, statusCode int, code domain.ErrorCode, message string) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
+	w.WriteHeader(statusCode)
 	errEnc := json.NewEncoder(w).Encode(ErrorResponse{
-		Error:   err.Error(),
-		Details: details,
+		Error: APIError{
+			Code:    code,
+			Message: message,
+		},
 	})
 	if errEnc != nil {
 		return fmt.Errorf("json.NewEncoder(w).Encode: %w", errEnc)
