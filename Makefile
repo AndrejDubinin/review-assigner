@@ -119,7 +119,8 @@ review-assigner:
 run:
 	@go run ./cmd/review-assigner \
 		-host=$(SERVER_HOST) \
-		-port=$(SERVER_PORT)
+		-port=$(SERVER_PORT) \
+		-db-host=127.0.0.1
 
 
 # ======================================================

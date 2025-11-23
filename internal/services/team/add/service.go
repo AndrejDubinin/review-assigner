@@ -33,7 +33,7 @@ func (h *Handler) AddTeam(ctx context.Context, team domain.Team) (domain.Team, e
 		if errors.Is(err, db_team_repo.ErrTeamExists) {
 			return domain.Team{}, ErrTeamExists
 		}
-		return domain.Team{}, fmt.Errorf("repo.AddItem failed: %w", err)
+		return domain.Team{}, fmt.Errorf("repo.AddItem: %w", err)
 	}
 
 	return team, nil

@@ -55,7 +55,8 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.validator.Struct(request); err != nil {
-		GetErrorResponse(w, http.StatusBadRequest, domain.ErrInvalidRequest, err.Error())
+		GetErrorResponse(w, http.StatusBadRequest, domain.ErrInvalidRequest,
+			ConvertValidationErrors(err).String())
 		return
 	}
 	/*
