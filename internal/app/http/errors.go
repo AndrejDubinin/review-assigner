@@ -40,6 +40,6 @@ func handleError(w http.ResponseWriter, err error, msg string, logger logger) {
 
 	respErr := GetErrorResponse(w, statusCode, errCode, msg)
 	if respErr != nil {
-		logger.Error("Failed to send error response", zap.Error(err))
+		logger.Error("GetErrorResponse", zap.Error(err))
 	}
 }
