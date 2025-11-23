@@ -5,7 +5,10 @@ import "errors"
 type ErrorCode string
 
 const (
-	ErrInvalidRequest ErrorCode = "INVALID_REQUEST"
+	ErrCodeInvalidRequest ErrorCode = "INVALID_REQUEST"
+	ErrCodeTeamExists     ErrorCode = "TEAM_EXISTS"
+	ErrCodeUserExists     ErrorCode = "USER_EXISTS"
+	ErrCodeInternalError  ErrorCode = "INTERNAL_ERROR"
 )
 
 var (

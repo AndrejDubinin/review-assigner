@@ -3,10 +3,9 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
-
-	"go.uber.org/zap"
 
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
 )
@@ -21,6 +20,9 @@ type (
 
 	addTeamRequest struct {
 		Team domain.Team `json:"team" validate:"required"`
+	}
+	addTeamResponse struct {
+		Team domain.Team `json:"team"`
 	}
 
 	AddTeamHandler struct {
@@ -48,38 +50,38 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if request, err = h.getRequestData(r); err != nil {
-		respErr := GetErrorResponse(w, http.StatusBadRequest, domain.ErrInvalidRequest, "invalid json")
-		if respErr != nil {
-			h.logger.Error("Failed to send error response", zap.Error(err))
-		}
+		handleError(w, ErrInvalidJSONSyntax, "invalid json syntax", h.logger)
 		return
 	}
 
 	if err = h.validator.Struct(request); err != nil {
-		GetErrorResponse(w, http.StatusBadRequest, domain.ErrInvalidRequest,
-			ConvertValidationErrors(err).String())
+		handleError(w, ErrInvalidJSONSyntax, ConvertValidationErrors(err).String(), h.logger)
 		return
 	}
 
 	team, err := h.addTeamService.AddTeam(ctx, request.Team)
 	if err != nil {
-		fmt.Println(err)
+		var msg string
+		if errors.Is(err, domain.ErrTeamExists) {
+			msg = fmt.Sprintf("%s already exists", request.Team.TeamName)
+		} else if errors.Is(err, domain.ErrUsersInTeam) {
+			msg = "one or more users are already in a team"
+		}
+		handleError(w, err, msg, h.logger)
 		return
 	}
 
-	fmt.Printf("%+v\n", team)
-	/*
-	   	if err != nil {
-	   		if errors.Is(err, add.ErrInvalidSKU) {
-	   			GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusNotFound)
-	   			return
-	   		}
-	   		GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusInternalServerError)
-	   		return
-	   	}
+	response := &addTeamResponse{
+		Team: team,
+	}
 
-	   GetSuccessResponseWithBody(w)
-	*/
+	marshaledTeam, err := json.Marshal(response)
+	if err != nil {
+		handleError(w, err, "failed to marshal team", h.logger)
+		return
+	}
+
+	GetSuccessResponseWithBody(w, marshaledTeam)
 }
 
 func (h *AddTeamHandler) getRequestData(r *http.Request) (request *addTeamRequest, err error) {
