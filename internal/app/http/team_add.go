@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"go.uber.org/zap"
@@ -41,7 +42,7 @@ func NewTeamAddTeamHandler(service addTeamService, name string, logger logger, v
 
 func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
-		// ctx     = r.Context()
+		ctx     = r.Context()
 		request *addTeamRequest
 		err     error
 	)
@@ -59,28 +60,25 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			ConvertValidationErrors(err).String())
 		return
 	}
+
+	team, err := h.addTeamService.AddTeam(ctx, request.Team)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("%+v\n", team)
 	/*
-		err = h.addTeamService.AddTeam(
+	   	if err != nil {
+	   		if errors.Is(err, add.ErrInvalidSKU) {
+	   			GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusNotFound)
+	   			return
+	   		}
+	   		GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusInternalServerError)
+	   		return
+	   	}
 
-			ctx,
-			request.User,
-			domain.Item{
-				SKU:   uint32(request.SKU),
-				Count: request.Count,
-			},
-
-		)
-
-			if err != nil {
-				if errors.Is(err, add.ErrInvalidSKU) {
-					GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusNotFound)
-					return
-				}
-				GetErrorResponse(w, h.name, fmt.Errorf("command handler failed: %w", err), http.StatusInternalServerError)
-				return
-			}
-
-		GetSuccessResponseWithBody(w)
+	   GetSuccessResponseWithBody(w)
 	*/
 }
 

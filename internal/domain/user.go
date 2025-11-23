@@ -5,3 +5,9 @@ type User struct {
 	TeamID   int64
 	IsActive bool
 }
+
+type UserDTO struct {
+	UserID   string
+	Username string
+	IsActive bool
+}

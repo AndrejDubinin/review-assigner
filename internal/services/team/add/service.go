@@ -2,24 +2,20 @@ package add
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
-	"github.com/AndrejDubinin/review-assigner/internal/repository/db_team_repo"
 )
 
 type (
 	repository interface {
-		AddTeam(ctx context.Context, team domain.Team) error
+		AddTeam(ctx context.Context, team domain.TeamDTO) error
 	}
 
 	Handler struct {
 		repo repository
 	}
 )
-
-var ErrTeamExists = errors.New("team already exists")
 
 func New(repo repository) *Handler {
 	return &Handler{
@@ -28,13 +24,27 @@ func New(repo repository) *Handler {
 }
 
 func (h *Handler) AddTeam(ctx context.Context, team domain.Team) (domain.Team, error) {
-	err := h.repo.AddTeam(ctx, team)
+	teamDTO := domain.TeamDTO{
+		TeamName: team.TeamName,
+		Members:  membersToUsers(team.Members),
+	}
+
+	err := h.repo.AddTeam(ctx, teamDTO)
 	if err != nil {
-		if errors.Is(err, db_team_repo.ErrTeamExists) {
-			return domain.Team{}, ErrTeamExists
-		}
 		return domain.Team{}, fmt.Errorf("repo.AddItem: %w", err)
 	}
 
 	return team, nil
+}
+
+func membersToUsers(members []domain.TeamMember) []domain.UserDTO {
+	users := make([]domain.UserDTO, len(members))
+	for i, member := range members {
+		users[i] = domain.UserDTO{
+			UserID:   member.UserID,
+			Username: member.Username,
+			IsActive: member.IsActive,
+		}
+	}
+	return users
 }

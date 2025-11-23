@@ -16,7 +16,7 @@ import (
 
 	appHttp "github.com/AndrejDubinin/review-assigner/internal/app/http"
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
-	"github.com/AndrejDubinin/review-assigner/internal/repository/db_team_repo"
+	repo "github.com/AndrejDubinin/review-assigner/internal/repository/db_repo"
 	teamService "github.com/AndrejDubinin/review-assigner/internal/services/team/add"
 )
 
@@ -36,7 +36,7 @@ type (
 		Struct(s any) error
 	}
 	teamStorage interface {
-		AddTeam(ctx context.Context, team domain.Team) error
+		AddTeam(ctx context.Context, team domain.TeamDTO) error
 	}
 
 	App struct {
@@ -85,7 +85,7 @@ func NewApp(config config, logger logger) (*App, error) {
 		},
 		logger:    logger,
 		validator: validator,
-		storage:   db_team_repo.NewRepo(pool),
+		storage:   repo.NewRepo(pool),
 	}, nil
 }
 

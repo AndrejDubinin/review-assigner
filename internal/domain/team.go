@@ -10,3 +10,8 @@ type Team struct {
 	TeamName string       `json:"team_name" validate:"required,gte=3,lte=255"`
 	Members  []TeamMember `json:"members" validate:"required,dive"`
 }
+
+type TeamDTO struct {
+	TeamName string
+	Members  []UserDTO
+}
