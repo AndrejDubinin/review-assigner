@@ -40,11 +40,7 @@ func (h *Handler) AddTeam(ctx context.Context, team domain.Team) (domain.Team, e
 func membersToUsers(members []domain.TeamMember) []domain.UserDTO {
 	users := make([]domain.UserDTO, len(members))
 	for i, member := range members {
-		users[i] = domain.UserDTO{
-			UserID:   member.UserID,
-			Username: member.Username,
-			IsActive: member.IsActive,
-		}
+		users[i] = domain.UserDTO(member)
 	}
 	return users
 }

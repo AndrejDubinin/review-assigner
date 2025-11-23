@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
 )
 
@@ -82,7 +84,7 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = GetSuccessResponseWithBody(w, marshaledTeam); err != nil {
-		handleError(w, err, "failed to send response", h.logger)
+		h.logger.Error("GetSuccessResponseWithBody", zap.Error(err))
 		return
 	}
 }
