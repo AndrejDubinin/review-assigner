@@ -4,8 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/AndrejDubinin/review-assigner/internal/domain"
 	"go.uber.org/zap"
+
+	"github.com/AndrejDubinin/review-assigner/internal/domain"
 )
 
 var (
