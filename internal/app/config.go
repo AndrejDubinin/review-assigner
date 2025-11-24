@@ -33,6 +33,7 @@ type (
 	path struct {
 		index   string
 		teamAdd string
+		teamGet string
 	}
 	web struct {
 		port            string
@@ -114,6 +115,7 @@ func NewConfig(opts Options) (config, error) {
 		path: path{
 			index:   "/",
 			teamAdd: "POST /team/add",
+			teamGet: "GET /team/get",
 		},
 	}, nil
 }

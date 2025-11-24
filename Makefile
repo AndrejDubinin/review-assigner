@@ -16,6 +16,7 @@ GOOSE                                := $(BIN_DIR)/goose
 GOLANGCI_LINT                        := $(BIN_DIR)/golangci-lint
 GCI                                  := $(BIN_DIR)/gci
 GOFUMPT                              := $(BIN_DIR)/gofumpt
+MINIMOCK                             := $(BIN_DIR)/minimock
 
 SERVICE_NAME                         := review-assigner
 
@@ -159,13 +160,13 @@ format:
 	@echo "Formatting code with gofumpt..."
 	@for module in $(DIR_LIST); do \
 		if [ -d $$module ]; then \
-			find $$module -type f -name '*.go' ! -path '*/mocks/*' -exec $(GOFUMPT) -extra -w {} +; \
+			find $$module -type f -name '*.go' ! -path '*/mocks/*' ! -name '*_mock_test.go' -exec $(GOFUMPT) -extra -w {} +; \
 		fi \
 	done
 	@echo "Sorting imports with gci..."
 	@for module in $(DIR_LIST); do \
 		if [ -d $$module ]; then \
-			find $$module -type f -name '*.go' ! -path '*/mocks/*' -exec $(GCI) write -s standard \
+			find $$module -type f -name '*.go' ! -path '*/mocks/*' ! -name '*_mock_test.go' -exec $(GCI) write -s standard \
 			-s default -s "prefix(github.com/AndrejDubinin/review-assigner)" {} +; \
 		fi \
 	done
@@ -192,6 +193,33 @@ lint:
 			$(GOLANGCI_LINT) run $$mod/... --config=.golangci.yml || ERR=1; \
 		fi \
 	done; exit $$ERR
+
+
+# ======================================================
+# Test
+# ======================================================
+.PHONY: install-minimock
+install-minimock:
+	@echo "Installing minimock if missing..."
+	@[ -f $(MINIMOCK) ] || GOBIN=$(BIN_DIR) go install github.com/gojuno/minimock/v3/cmd/minimock@latest
+
+.PHONY: generate-mocks
+generate-mocks: install-minimock
+	@echo "Generating mocks..."
+	@$(MINIMOCK) -i ./internal/services/team/add.repository -o ./internal/services/team/add/repository_mock_test.go
+
+
+.PHONY: test
+test:
+	@echo "Testing..."
+	@go test -v -count=1 ./...
+
+.PHONY: test-cover
+test-cover:
+	@echo "Generating cover files..."
+	@go test -short -count=1 -coverprofile=coverage.out ./...
+	@go tool cover -html=coverage.out
+	@rm coverage.out
 
 
 # ======================================================
@@ -226,4 +254,9 @@ help:
 	@echo "  install-golangci-lint         Install linter"
 	@echo "  format                        Format code with gofumpt and sort imports with gci"
 	@echo "  lint                          Lint code with golangci-lint"
+	@echo ""
+	@echo "  install-minimock              Install minimock"
+	@echo "  generate-mocks                Generate mocks"
+	@echo "  test                          Run Tests"
+	@echo "  test-cover                    Test coverage"
 	@echo ""

@@ -14,6 +14,7 @@ import (
 type (
 	logger interface {
 		Error(msg string, fields ...zap.Field)
+		With(fields ...zap.Field) *zap.Logger
 	}
 
 	IndexHandler struct {

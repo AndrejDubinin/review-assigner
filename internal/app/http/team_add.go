@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func NewTeamAddTeamHandler(service addTeamService, name string, logger logger, validator validator) *AddTeamHandler {
+func NewAddTeamHandler(service addTeamService, name string, logger logger, validator validator) *AddTeamHandler {
 	return &AddTeamHandler{
 		name:           name,
 		addTeamService: service,
@@ -49,6 +49,11 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx     = r.Context()
 		request *addTeamRequest
 		err     error
+	)
+
+	h.logger = h.logger.With(
+		zap.String("service", "team.add"),
+		zap.String("requestID", domain.GetRequestID(ctx)),
 	)
 
 	if request, err = h.getRequestData(r); err != nil {

@@ -12,6 +12,7 @@ import (
 var (
 	ErrInvalidJSONSyntax = errors.New("invalid JSON syntax")
 	ErrInvalidJSON       = errors.New("invalid JSON")
+	ErrInvalidQuery      = errors.New("invalid query")
 )
 
 func handleError(w http.ResponseWriter, err error, msg string, logger logger) {
@@ -19,7 +20,8 @@ func handleError(w http.ResponseWriter, err error, msg string, logger logger) {
 	var errCode domain.ErrorCode
 
 	switch {
-	case errors.Is(err, ErrInvalidJSONSyntax) || errors.Is(err, ErrInvalidJSON):
+	case errors.Is(err, ErrInvalidJSONSyntax) || errors.Is(err, ErrInvalidJSON) ||
+		errors.Is(err, ErrInvalidQuery):
 		statusCode = http.StatusBadRequest
 		errCode = domain.ErrCodeInvalidRequest
 
@@ -30,6 +32,10 @@ func handleError(w http.ResponseWriter, err error, msg string, logger logger) {
 	case errors.Is(err, domain.ErrUsersInTeam):
 		statusCode = http.StatusBadRequest
 		errCode = domain.ErrCodeUserExists
+
+	case errors.Is(err, domain.ErrTeamNotFound):
+		statusCode = http.StatusNotFound
+		errCode = domain.ErrCodeNotFound
 
 	default:
 		logger.Error("internal error", zap.Error(err))
