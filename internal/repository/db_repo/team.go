@@ -131,3 +131,40 @@ func (r *Repo) addUsers(ctx context.Context, tx pgx.Tx, teamID int64, users []do
 	}
 	return nil
 }
+
+func (r *Repo) GetTeam(ctx context.Context, teamName string) (domain.Team, error) {
+	const query = `
+	SELECT t.id, u.id, u.username, u.is_active from teams t
+	LEFT JOIN users u on t.id = u.team_id
+	WHERE name = $1;`
+
+	var team domain.Team
+
+	rows, err := r.conn.Query(ctx, query, teamName)
+	if err != nil {
+		return domain.Team{}, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var member domain.TeamMember
+		var teamID string
+
+		if err := rows.Scan(&teamID, &member.UserID, &member.Username, &member.IsActive); err != nil {
+			return domain.Team{}, err
+		}
+
+		team.Members = append(team.Members, member)
+	}
+
+	if err := rows.Err(); err != nil {
+		return domain.Team{}, err
+	}
+
+	team.TeamName = teamName
+	if len(team.Members) == 0 {
+		return domain.Team{}, domain.ErrTeamNotFound
+	}
+
+	return team, nil
+}

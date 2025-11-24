@@ -18,7 +18,8 @@ import (
 	"github.com/AndrejDubinin/review-assigner/internal/app/http/middleware"
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
 	repo "github.com/AndrejDubinin/review-assigner/internal/repository/db_repo"
-	teamService "github.com/AndrejDubinin/review-assigner/internal/services/team/add"
+	addTeamService "github.com/AndrejDubinin/review-assigner/internal/services/team/add"
+	getTeamService "github.com/AndrejDubinin/review-assigner/internal/services/team/get"
 )
 
 type (
@@ -40,6 +41,7 @@ type (
 	}
 	teamStorage interface {
 		AddTeam(ctx context.Context, team domain.TeamDTO) error
+		GetTeam(ctx context.Context, teamName string) (domain.Team, error)
 	}
 
 	App struct {
@@ -98,9 +100,15 @@ func NewApp(config config, logger logger) (*App, error) {
 
 func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.index, appHttp.NewIndexHandler(a.logger))
-	a.mux.Handle(a.config.path.teamAdd, appHttp.NewTeamAddTeamHandler(
-		teamService.New(a.storage, a.logger),
+	a.mux.Handle(a.config.path.teamAdd, appHttp.NewAddTeamHandler(
+		addTeamService.New(a.storage, a.logger),
 		a.config.path.teamAdd,
+		a.logger,
+		a.validator,
+	))
+	a.mux.Handle(a.config.path.teamGet, appHttp.NewGetTeamHandler(
+		getTeamService.New(a.storage, a.logger),
+		a.config.path.teamGet,
 		a.logger,
 		a.validator,
 	))

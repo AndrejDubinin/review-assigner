@@ -35,7 +35,7 @@ type (
 	}
 )
 
-func NewTeamAddTeamHandler(service addTeamService, name string, logger logger, validator validator) *AddTeamHandler {
+func NewAddTeamHandler(service addTeamService, name string, logger logger, validator validator) *AddTeamHandler {
 	return &AddTeamHandler{
 		name:           name,
 		addTeamService: service,
