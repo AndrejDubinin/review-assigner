@@ -51,6 +51,11 @@ func (h *AddTeamHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err     error
 	)
 
+	h.logger = h.logger.With(
+		zap.String("service", "team.add"),
+		zap.String("requestID", domain.GetRequestID(ctx)),
+	)
+
 	if request, err = h.getRequestData(r); err != nil {
 		handleError(w, ErrInvalidJSONSyntax, "invalid json syntax", h.logger)
 		return

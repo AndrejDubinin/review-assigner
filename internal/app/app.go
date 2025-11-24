@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap"
 
 	appHttp "github.com/AndrejDubinin/review-assigner/internal/app/http"
+	"github.com/AndrejDubinin/review-assigner/internal/app/http/middleware"
 	"github.com/AndrejDubinin/review-assigner/internal/domain"
 	repo "github.com/AndrejDubinin/review-assigner/internal/repository/db_repo"
 	teamService "github.com/AndrejDubinin/review-assigner/internal/services/team/add"
@@ -23,6 +24,7 @@ import (
 type (
 	mux interface {
 		Handle(pattern string, handler http.Handler)
+		ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 	server interface {
 		ListenAndServe() error
@@ -31,6 +33,7 @@ type (
 	logger interface {
 		Info(msg string, fields ...zap.Field)
 		Error(msg string, fields ...zap.Field)
+		With(fields ...zap.Field) *zap.Logger
 	}
 	validator interface {
 		Struct(s any) error
@@ -73,12 +76,16 @@ func NewApp(config config, logger logger) (*App, error) {
 
 	validator := validatorV10.New(validatorV10.WithRequiredStructEnabled())
 
+	handler := middleware.LoggingMiddleware(logger)(mux)
+	handler = middleware.PanicMiddleware(logger)(handler)
+	handler = middleware.RequestIDMiddleware(handler)
+
 	return &App{
 		config: config,
 		mux:    mux,
 		server: &http.Server{
 			Addr:         net.JoinHostPort(config.web.host, config.web.port),
-			Handler:      mux,
+			Handler:      handler,
 			ReadTimeout:  config.web.readTimeout,
 			WriteTimeout: config.web.writeTimeout,
 			IdleTimeout:  config.web.idleTimeout,
@@ -91,7 +98,12 @@ func NewApp(config config, logger logger) (*App, error) {
 
 func (a *App) ListenAndServe() error {
 	a.mux.Handle(a.config.path.index, appHttp.NewIndexHandler(a.logger))
-	a.mux.Handle(a.config.path.teamAdd, appHttp.NewTeamAddTeamHandler(teamService.New(a.storage), a.config.path.teamAdd, a.logger, a.validator))
+	a.mux.Handle(a.config.path.teamAdd, appHttp.NewTeamAddTeamHandler(
+		teamService.New(a.storage, a.logger),
+		a.config.path.teamAdd,
+		a.logger,
+		a.validator,
+	))
 
 	a.logger.Info("Starting server", zap.String("address", net.JoinHostPort(a.config.web.host, a.config.web.port)))
 
