@@ -14,4 +14,5 @@ const (
 var (
 	ErrTeamExists  = errors.New("team already exists")
 	ErrUsersInTeam = errors.New("one or more users are already in a team")
+	ErrEmptyTeam   = errors.New("team is empty")
 )

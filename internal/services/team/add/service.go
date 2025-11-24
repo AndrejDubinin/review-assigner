@@ -38,6 +38,11 @@ func (h *Handler) AddTeam(ctx context.Context, team domain.Team) (domain.Team, e
 		zap.String("requestID", domain.GetRequestID(ctx)),
 	)
 
+	if len(team.Members) == 0 {
+		h.logger.Error("empty_team", zap.String("team_name", team.TeamName))
+		return domain.Team{}, domain.ErrEmptyTeam
+	}
+
 	teamDTO := domain.TeamDTO{
 		TeamName: team.TeamName,
 		Members:  membersToUsers(team.Members),
